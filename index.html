@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Shuffle Music Player + Pomodoro Timer</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #1c1c1c;
+      color: #f5f5f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px;
+    }
+
+    h1 {
+      margin-bottom: 5px;
+    }
+
+    /* Pomodoro timer styles */
+    #pomodoro {
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    #timerDisplay {
+      font-size: 2.5em;
+      margin: 10px 0;
+    }
+
+    .pomodoro-btn {
+      margin: 5px;
+      padding: 8px 16px;
+      background: #e74c3c;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    .pomodoro-btn:hover {
+      background: #c0392b;
+    }
+
+    /* Music player styles */
+    ul {
+      list-style: none;
+      padding: 0;
+      margin: 15px 0;
+      width: 80%;
+      max-width: 500px;
+    }
+
+    li {
+      padding: 8px;
+      margin: 5px 0;
+      background: #2a2a2a;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    li:hover {
+      background: #3a3a3a;
+    }
+
+    li.playing {
+      background: #4a90e2;
+      color: white;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 20px;
+      background: #4a90e2;
+      border: none;
+      border-radius: 8px;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.2s;
+    }
+
+    button:hover {
+      background: #357ABD;
+    }
+
+    audio {
+      margin-top: 20px;
+      width: 80%;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎵 Shuffle Music Player</h1>
+
+  <!-- 🍅 Pomodoro Timer -->
+  <div id="pomodoro">
+    <h2>🍅 Pomodoro Timer</h2>
+    <div id="timerDisplay">25:00</div>
+    <div>
+      <button class="pomodoro-btn" id="startBtn">Start</button>
+      <button class="pomodoro-btn" id="pauseBtn">Pause</button>
+      <button class="pomodoro-btn" id="resetBtn">Reset</button>
+    </div>
+    <p id="modeLabel">Focus Mode</p>
+  </div>
+
+  <!-- 🎧 Music Controls -->
+  <div>
+    <button id="prevBtn">⏮ Previous</button>
+    <button id="nextBtn">⏭ Next</button>
+  </div>
+  <p id="nowPlaying">Now playing: —</p>
+  <ul id="playlist"></ul>
+  <audio id="audioPlayer" controls></audio>
+
+  <script>
+    // -----------------------------
+    // 🍅 Pomodoro Timer Logic
+    // -----------------------------
+    const timerDisplay = document.getElementById("timerDisplay");
+    const startBtn = document.getElementById("startBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const modeLabel = document.getElementById("modeLabel");
+
+    let isFocus = true;
+    let timeLeft = 25 * 60; // 25 min
+    let timer = null;
+
+    function updateTimerDisplay() {
+      const minutes = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+      const seconds = (timeLeft % 60).toString().padStart(2, "0");
+      timerDisplay.textContent = `${minutes}:${seconds}`;
+    }
+
+    function startTimer() {
+      if (timer) return; // prevent multiple intervals
+      timer = setInterval(() => {
+        timeLeft--;
+        updateTimerDisplay();
+
+        if (timeLeft <= 0) {
+          clearInterval(timer);
+          timer = null;
+
+          // Switch mode
+          if (isFocus) {
+            isFocus = false;
+            timeLeft = 5 * 60; // 5 minutes break
+            modeLabel.textContent = "Break Time 🌿";
+          } else {
+            isFocus = true;
+            timeLeft = 25 * 60; // Back to focus
+            modeLabel.textContent = "Focus Mode 🔥";
+          }
+
+          updateTimerDisplay();
+          startTimer(); // auto-start next phase
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      clearInterval(timer);
+      timer = null;
+    }
+
+    function resetTimer() {
+      pauseTimer();
+      isFocus = true;
+      timeLeft = 25 * 60;
+      modeLabel.textContent = "Focus Mode 🔥";
+      updateTimerDisplay();
+    }
+
+    startBtn.addEventListener("click", startTimer);
+    pauseBtn.addEventListener("click", pauseTimer);
+    resetBtn.addEventListener("click", resetTimer);
+    updateTimerDisplay();
+
+    // -----------------------------
+    // 🎵 Music Player Logic
+    // -----------------------------
+    const songs = [
+      "songs/song1.mp3",
+      "songs/song2.mp3",
+      "songs/song3.mp3",
+      "songs/song4.mp3"
+    ];
+
+    const playlistElement = document.getElementById("playlist");
+    const audioPlayer = document.getElementById("audioPlayer");
+    const nowPlaying = document.getElementById("nowPlaying");
+    const nextBtn = document.getElementById("nextBtn");
+    const prevBtn = document.getElementById("prevBtn");
+
+    let shuffled = [];
+    let currentIndex = 0;
+
+    function shuffleArray(array) {
+      let shuffled = array.slice();
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      return shuffled;
+    }
+
+    function renderPlaylist() {
+      playlistElement.innerHTML = "";
+      shuffled.forEach((song, index) => {
+        const li = document.createElement("li");
+        li.textContent = song.split("/").pop();
+        li.addEventListener("click", () => playTrack(index));
+        if (index === currentIndex) li.classList.add("playing");
+        playlistElement.appendChild(li);
+      });
+    }
+
+    function playTrack(index) {
+      currentIndex = index;
+      const song = shuffled[currentIndex];
+      audioPlayer.src = song;
+      audioPlayer.play();
+
+      nowPlaying.textContent = "Now playing: " + song.split("/").pop();
+      document.querySelectorAll("li").forEach(li => li.classList.remove("playing"));
+      document.querySelectorAll("li")[currentIndex].classList.add("playing");
+    }
+
+    function nextTrack() {
+      currentIndex++;
+      if (currentIndex >= shuffled.length) {
+        shuffled = shuffleArray(songs);
+        currentIndex = 0;
+      }
+      playTrack(currentIndex);
+    }
+
+    function prevTrack() {
+      currentIndex--;
+      if (currentIndex < 0) currentIndex = shuffled.length - 1;
+      playTrack(currentIndex);
+    }
+
+    audioPlayer.addEventListener("ended", nextTrack);
+    nextBtn.addEventListener("click", nextTrack);
+    prevBtn.addEventListener("click", prevTrack);
+
+    shuffled = shuffleArray(songs);
+    renderPlaylist();
+    playTrack(0);
+  </script>
+</body>
+</html>
