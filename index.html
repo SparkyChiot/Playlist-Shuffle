@@ -3,24 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <link rel="stylesheet" type="text/css" href="style.css">
-  <title>Shuffle Music Player + Pomodoro Timer</title>
+  <title>Sparky's Playlist Shuffle</title>
 
 </head>
 <body>
   <h1>🎵 Shuffle Music Player</h1>
-
-  <!-- 🍅 Pomodoro Timer -->
-  <div id="pomodoro">
-    <h2>🍅 Pomodoro Timer</h2>
-    <div id="timerDisplay">25:00</div>
-    <div>
-      <button class="pomodoro-btn" id="startBtn">Start</button>
-      <button class="pomodoro-btn" id="pauseBtn">Pause</button>
-      <button class="pomodoro-btn" id="resetBtn">Reset</button>
-    </div>
-    <p id="modeLabel">Focus Mode</p>
-  </div>
-
   <!-- 🎧 Music Controls -->
    <div style="margin:10px 0;">
   <label for="playlistSelect">Playlist: </label>
@@ -39,70 +26,7 @@
   <audio id="audioPlayer" controls></audio>
 
   <script>
-    // -----------------------------
-    // 🍅 Pomodoro Timer Logic
-    // -----------------------------
-    const timerDisplay = document.getElementById("timerDisplay");
-    const startBtn = document.getElementById("startBtn");
-    const pauseBtn = document.getElementById("pauseBtn");
-    const resetBtn = document.getElementById("resetBtn");
-    const modeLabel = document.getElementById("modeLabel");
-
-    let isFocus = true;
-    let timeLeft = 25 * 60; // 25 min
-    let timer = null;
-
-    function updateTimerDisplay() {
-      const minutes = Math.floor(timeLeft / 60).toString().padStart(2, "0");
-      const seconds = (timeLeft % 60).toString().padStart(2, "0");
-      timerDisplay.textContent = `${minutes}:${seconds}`;
-    }
-
-    function startTimer() {
-      if (timer) return; // prevent multiple intervals
-      timer = setInterval(() => {
-        timeLeft--;
-        updateTimerDisplay();
-
-        if (timeLeft <= 0) {
-          clearInterval(timer);
-          timer = null;
-
-          // Switch mode
-          if (isFocus) {
-            isFocus = false;
-            timeLeft = 5 * 60; // 5 minutes break
-            modeLabel.textContent = "Break Time 🌿";
-          } else {
-            isFocus = true;
-            timeLeft = 25 * 60; // Back to focus
-            modeLabel.textContent = "Focus Mode 🔥";
-          }
-
-          updateTimerDisplay();
-          startTimer(); // auto-start next phase
-        }
-      }, 1000);
-    }
-
-    function pauseTimer() {
-      clearInterval(timer);
-      timer = null;
-    }
-
-    function resetTimer() {
-      pauseTimer();
-      isFocus = true;
-      timeLeft = 25 * 60;
-      modeLabel.textContent = "Focus Mode 🔥";
-      updateTimerDisplay();
-    }
-
-    startBtn.addEventListener("click", startTimer);
-    pauseBtn.addEventListener("click", pauseTimer);
-    resetBtn.addEventListener("click", resetTimer);
-    updateTimerDisplay();
-
+   
     // -----------------------------
     // 🎵 Music Player Logic
     // -----------------------------
