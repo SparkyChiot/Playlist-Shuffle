@@ -1,4 +1,4 @@
-const CACHE_NAME = "study-player-v1";
+const CACHE_NAME = "study-player-v2";
 
 const ASSETS = [
   "/",               // root
