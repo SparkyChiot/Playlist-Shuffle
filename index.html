@@ -26,7 +26,7 @@
   <audio id="audioPlayer" controls></audio>
   <ul id="playlist"></ul>
   <script>
-   
+   if ("serviceWorker" in navigator) { navigator.serviceWorker.register("/service-worker.js"); }
     // -----------------------------
     // 🎵 Music Player Logic
     // -----------------------------
